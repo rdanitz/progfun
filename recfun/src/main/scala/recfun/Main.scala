@@ -29,7 +29,7 @@ object Main {
   def balance(chars: List[Char]): Boolean = { 
     def fn(chars: List[Char], b: Int):Boolean = {
       if (chars.isEmpty)
-        return b == 0
+        b == 0
       else
         chars.head match {
           case '(' => fn(chars.tail, b+1) 
