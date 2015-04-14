@@ -71,11 +71,16 @@ abstract class TweetSet {
    * and be implemented in the subclasses?
    */
   def mostRetweeted: Tweet = {
-    var max: Tweet = null
-    this.foreach(x => if (max == null || x.retweets > max.retweets) max = x)
-    
-    if (max != null) max
-    else throw new java.util.NoSuchElementException("call on empty set")
+    var max: Option[Tweet] = None
+    this.foreach(x => max match {
+      case None => max = Some(x)
+      case Some(y) => if (x.retweets > y.retweets) max = Some(x)
+    })
+   
+    max match {
+      case None => throw new java.util.NoSuchElementException("call on empty set")
+      case Some(x) => x
+    }
   }
 
   /**
