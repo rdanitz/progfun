@@ -32,12 +32,12 @@ object Huffman {
   }
 
   def chars(tree: CodeTree): List[Char] = tree match {
+    case Leaf(c, _) => List(c)
     case Fork(_, _, chars, _) => chars
-    case Leaf(_, _) => List()
   }
 
   def makeCodeTree(left: CodeTree, right: CodeTree) =
-    Fork(left, right, chars(left) ::: chars(right), weight(left) + weight(right))
+    Fork(left, right, chars(left) ++ chars(right), weight(left) + weight(right))
 
 
 
@@ -79,7 +79,7 @@ object Huffman {
    */
   def times(chars: List[Char]): List[(Char, Int)] = chars match {
     case List() => List()
-    case (x::xs) => (x, (xs filter (i => i == x)).length)::times(xs filter (i => i != x))
+    case (x::xs) => (x, 1+(xs filter(i => i == x)).length)::times(xs filter (i => i != x))
   }
     
 
@@ -110,16 +110,25 @@ object Huffman {
    * If `trees` is a list of less than two elements, that list should be returned
    * unchanged.
    */
-  def combine(trees: List[CodeTree]): List[CodeTree] = trees match {
-    case ((left: Fork)::(right: Fork)::rest) => 
-      (new Fork(left, right, left.chars ++ right.chars, left.weight + right.weight))::rest
-    case ((left: Leaf)::(right: Fork)::rest) => 
-      (new Fork(left, right, left.char :: right.chars, left.weight + right.weight))::rest
-    case ((left: Fork)::(right: Leaf)::rest) => 
-      (new Fork(left, right, left.chars ++ List(right.char), left.weight + right.weight))::rest
-    case ((left: Leaf)::(right: Leaf)::rest) => 
-      (new Fork(left, right, List(left.char) ++ List(right.char), left.weight + right.weight))::rest
-    case _ => trees
+  def combine(trees: List[CodeTree]): List[CodeTree] = {
+    def comb(a: CodeTree, b: CodeTree): CodeTree = (a, b) match { 
+      case ((left: Fork), (right: Fork)) => 
+        (new Fork(left, right, left.chars ++ right.chars, left.weight + right.weight))
+      case ((left: Leaf), (right: Fork)) => 
+        (new Fork(left, right, left.char :: right.chars, left.weight + right.weight))
+      case ((left: Fork), (right: Leaf)) => 
+        (new Fork(left, right, left.chars ++ List(right.char), left.weight + right.weight))
+      case ((left: Leaf), (right: Leaf)) => 
+        (new Fork(left, right, List(left.char) ++ List(right.char), left.weight + right.weight))
+    }
+    
+    trees match {
+      case (x::y::zs) => {
+        val xy = comb(x, y)
+        zs.filter(i => weight(i) < weight(xy)) ++ List(xy) ++ zs.filter(i => weight(i) >= weight(xy))
+      }
+      case xs => xs
+    }
   }
 
   /**
@@ -235,8 +244,7 @@ object Huffman {
    */
   def convert(tree: CodeTree): CodeTable = tree match {
     case Leaf(c, _) => List((c, enc(tree, c, List())))
-    case Fork(left, right, chars, _) => 
-      chars.map(i => (i, enc(tree, i, List()))) ++ convert(left) ++ convert(right)
+    case Fork(left, right, chars, _) => chars.map(i => (i, enc(tree, i, List())))
   }
 
   /**
