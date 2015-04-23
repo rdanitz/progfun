@@ -67,39 +67,10 @@ trait Solver extends GameDef {
    * of different paths - the implementation should naturally
    * construct the correctly sorted stream.
    */
-  def pp_block(b: Block): String = b match {
-    case Block(Pos(x1, y1), Pos(x2, y2)) => "[" + x1 + "," + y1 + "|" + x2 + "," + y2 + "]"
-  }
-
-  def pp_hist(h: List[Move]): String = {
-    def go(h: List[Move]): String = h match {
-      case Nil => ""
-      case x::xs => (x match {
-        case Left => "L"
-        case Right => "R"
-        case Up => "U"
-        case Down => "D"
-      }) ++ go(xs)
-    }
-    h.length.toString ++ go(h)
-  }
-
-  def pp(s: Stream[(Block, List[Move])]): String = {
-    def go(s: Stream[(Block, List[Move])], acc: String): String = s match {
-      case Stream() => acc
-      case ((b, h)#::xs) => acc + pp_block(b) + ":" + pp_hist(h) + "\n" + go(xs, acc + " ")
-    }
-    go(s, "")
-  }
-
   def from(initial: Stream[(Block, List[Move])], explored: Set[Block]): Stream[(Block, List[Move])] = {
-    println("from < " + pp(initial))
-    val (block, history) = initial.last
-    val tail = initial.filter { case (_, h) => h == history }
-    val newTail = tail.flatMap { case (b, h) => newNeighborsOnly(neighborsWithHistory(b, h), explored)}
-    val result = from(initial #::: newTail, explored + block)
-    println("from > " + pp(result))
-    result
+    val newTail = initial.flatMap { case (b, h) => newNeighborsOnly(neighborsWithHistory(b, h), explored)}
+    if (newTail.isEmpty) initial
+    else from(initial #::: newTail, explored ++ newTail.map { case (b, _) => b }.toSet)
   }
 
   /**
