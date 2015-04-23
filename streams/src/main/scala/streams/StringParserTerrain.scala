@@ -54,7 +54,7 @@ trait StringParserTerrain extends GameDef {
    */
   def terrainFunction(levelVector: Vector[Vector[Char]]): Pos => Boolean = { 
     case Pos(x, y) => try {
-      levelVector(y)(x) != '-'
+      levelVector(x)(y) != '-'
     } catch { 
       case _:Exception => false
     }
@@ -69,8 +69,8 @@ trait StringParserTerrain extends GameDef {
    * `Vector` class
    */
   def findChar(c: Char, levelVector: Vector[Vector[Char]]): Pos = {
-    val y = levelVector.indexWhere(i => i.contains(c))
-    val x = levelVector(y).indexOf(c)
+    val x = levelVector.indexWhere(i => i.contains(c))
+    val y = levelVector(x).indexOf(c)
     Pos(x, y)
   }
 
