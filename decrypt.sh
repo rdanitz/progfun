@@ -1,6 +1,7 @@
 #!/bin/sh
 
-for i in ./quiz*
+for i in */src/main/scala/*/*.scala
 do
-  gpg --yes --quiet --decrypt --cipher-algo AES256 --passphrase-file $i/secret.txt --output $i/$i.jl $i/$i.jl.gpg
+  src=$(echo $i | sed -e 's/.gpg$//g')
+  gpg --yes --quiet --decrypt --cipher-algo AES256 --passphrase-file secret.txt --output $src $i
 done
